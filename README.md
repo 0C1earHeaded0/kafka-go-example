@@ -3,7 +3,7 @@ Learn how to build services that uses kafka
 
 ## Описание
 
-### confluentinc/cp-zookeeper
+### <a href='./docker-compose.yml#2'>confluentinc/cp-zookeeper</a>
 
 Специализированная сборка (Docker-образ) распределенного сервиса координации Apache ZooKeeper, оптимизированная и поддерживаемая компанией Confluent в составе платформы Confluent Platform (коммерческой экосистемы вокруг Apache Kafka).
 
