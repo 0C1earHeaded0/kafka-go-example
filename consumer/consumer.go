@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	env "github.com/joho/godotenv"
+	"github.com/lib/pq"
 )
-
-const MIN_COMMIT_COUNT = 2
 
 func processMsgMock(msg *kafka.Message) {
 	fmt.Println("Processing message...")
@@ -17,10 +18,21 @@ func processMsgMock(msg *kafka.Message) {
 }
 
 func main() {
+	err := env.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	config := &kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092,localhost:9093,localhost:9094",
 		"group.id":          "testGroup",
 		"auto.offset.reset": "earliest",
+	}
+
+	// TODO: Обработать отсутствие переменных окружения.
+	dbConfig := pq.Config{
+		Host: os.Getenv("TRANSACTION_DB_HOST"),
+		Port: 5400, // Сделать нормальную загрузку с переменных окружения.
 	}
 
 	consumer, err := kafka.NewConsumer(config)
