@@ -54,7 +54,7 @@ func main() {
 	defer producer.Close()
 	fmt.Println("Producer initialized")
 
-	// sendMessage(producer, "test", "test message")
+	// sendMessage(producer, "async-topic", "test async message")
 	// producer.Flush(5000) // Продюсер не успевает отправить брокеру сообщение, если приложение не является сервером.
 
 	// go func() {
@@ -70,7 +70,7 @@ func main() {
 	// 	}
 	// }()
 
-	m := sendSyncMessage(producer, "test2", "test sync message")
+	m := sendSyncMessage(producer, "sync-topic", "test sync message")
 
 	if m.TopicPartition.Error != nil {
 		fmt.Printf("Failed to deliver sync message: %v\n", m.TopicPartition.Error)
