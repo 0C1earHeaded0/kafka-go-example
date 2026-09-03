@@ -104,11 +104,10 @@ services:
     image: postgres:18.2-alpine
     hostname: postgres
     container_name: postgres_eos
+    env_file:
+      - .env
     ports:
       - "5400:5432"
-    environment:
-      - POSTGRES_PASSWORD=testtest
-      - POSTGRES_DB=transactions
     volumes:
       - transactions:/var/lib/postgresql/data
 
