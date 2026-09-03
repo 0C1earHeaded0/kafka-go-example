@@ -3,11 +3,18 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 const MIN_COMMIT_COUNT = 2
+
+func processMsgMock(msg *kafka.Message) {
+	fmt.Println("Processing message...")
+	time.Sleep(3 * time.Second)
+	fmt.Printf("Message processed. Value: %s\n", msg.Value)
+}
 
 func main() {
 	config := &kafka.ConfigMap{
@@ -28,21 +35,14 @@ func main() {
 
 	fmt.Println("Consumer initialized")
 
-	msg_count := 0
 	for run := true; run == true; {
 		ev := consumer.Poll(100)
 		switch e := ev.(type) {
 		case *kafka.Message:
-			msg_count += 1
-			if msg_count%MIN_COMMIT_COUNT == 0 {
-				topic, err := consumer.Commit()
-				if err != nil {
-					fmt.Printf("Failed to commit: %s", err)
-				}
-
-				fmt.Printf("Total commited: %d\n", len(topic))
+			_, err = consumer.CommitMessage(e) // Фиксация смещения до обработки сообщения.
+			if err == nil {
+				processMsgMock(e)
 			}
-			fmt.Printf("Got message: %s\n", e.Value)
 		case kafka.PartitionEOF:
 			fmt.Printf("%% Reached %v\n", e)
 		case kafka.OffsetsCommitted:
