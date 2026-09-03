@@ -39,9 +39,11 @@ func main() {
 		ev := consumer.Poll(100)
 		switch e := ev.(type) {
 		case *kafka.Message:
-			_, err = consumer.CommitMessage(e) // Фиксация смещения до обработки сообщения.
-			if err == nil {
-				processMsgMock(e)
+			processMsgMock(e) // Обработка сообщения до фиксации смещения
+
+			_, err = consumer.CommitMessage(e)
+			if err != nil {
+				fmt.Printf("Commit message failed with error: %v\n", err)
 			}
 		case kafka.PartitionEOF:
 			fmt.Printf("%% Reached %v\n", e)
