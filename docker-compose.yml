@@ -100,3 +100,17 @@ services:
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
     depends_on:
       - zoo1
+  postgres:
+    image: postgres:18.2-alpine
+    hostname: postgres
+    container_name: postgres_eos
+    ports:
+      - "5400:5432"
+    environment:
+      - POSTGRES_PASSWORD=testtest
+      - POSTGRES_DB=transactions
+    volumes:
+      - transactions:/var/lib/postgresql/data
+
+volumes:
+  transactions:
