@@ -1,21 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"kafka-go-example-consumer/storage/postgresql"
 	"log"
 	"os"
-	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	env "github.com/joho/godotenv"
-	"github.com/lib/pq"
 )
-
-func processMsgMock(msg *kafka.Message) {
-	fmt.Println("Processing message...")
-	time.Sleep(3 * time.Second)
-	fmt.Printf("Message processed. Value: %s\n", msg.Value)
-}
 
 func main() {
 	err := env.Load()
@@ -29,10 +23,9 @@ func main() {
 		"auto.offset.reset": "earliest",
 	}
 
-	// TODO: Обработать отсутствие переменных окружения.
-	dbConfig := pq.Config{
-		Host: os.Getenv("TRANSACTION_DB_HOST"),
-		Port: 5400, // Сделать нормальную загрузку с переменных окружения.
+	storage, err := postgresql.NewStorage()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create storage: %v", err))
 	}
 
 	consumer, err := kafka.NewConsumer(config)
@@ -40,18 +33,27 @@ func main() {
 		panic(fmt.Sprintf("Failed to create consumer: %v", err))
 	}
 
-	err = consumer.SubscribeTopics([]string{"async-topic", "sync-topic"}, nil)
+	err = consumer.SubscribeTopics([]string{"metrics"}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to subscribe to topic: %v", err))
 	}
 
 	fmt.Println("Consumer initialized")
 
+	ctx := context.Background()
+
 	for run := true; run == true; {
 		ev := consumer.Poll(100)
 		switch e := ev.(type) {
 		case *kafka.Message:
-			processMsgMock(e) // Обработка сообщения до фиксации смещения
+			id := fmt.Sprintf("%s-%d-%s", *e.TopicPartition.Topic, e.TopicPartition.Partition, e.TopicPartition.Offset.String())
+			res, err := storage.Save(ctx, id, string(e.Value))
+			if err != nil {
+				panic(fmt.Sprintf("Failed to save metric: %v", err))
+			}
+			fmt.Printf("Metric saved: %s\n", res)
+
+			// panic("Netw problems.")
 
 			_, err = consumer.CommitMessage(e)
 			if err != nil {
