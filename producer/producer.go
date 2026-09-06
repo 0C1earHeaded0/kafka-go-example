@@ -70,7 +70,7 @@ func main() {
 	// 	}
 	// }()
 
-	m := sendSyncMessage(producer, "sync-topic", "test sync message")
+	m := sendSyncMessage(producer, "metrics", "{\"name\":\"cpu\",\"value\":15}")
 
 	if m.TopicPartition.Error != nil {
 		fmt.Printf("Failed to deliver sync message: %v\n", m.TopicPartition.Error)
